@@ -1,5 +1,6 @@
 package com.example.fantasy_football.service;
 
+import com.example.fantasy_football.exceptions.APIException;
 import com.example.fantasy_football.exceptions.ResourceNotFoundException;
 import com.example.fantasy_football.model.Player;
 import com.example.fantasy_football.repositories.PlayerRepository;
@@ -25,6 +26,13 @@ public class PlayerServiceImpl implements PlayerService{
 
     @Override
     public Player createPlayer(Player player) {
+        boolean isJerseyTaken = playerRepository.existsByClubAndJerseyNumber(
+                player.getClub(),
+                player.getJerseyNumber()
+        );
+        if(isJerseyTaken){
+            throw new APIException("Jersey number " + player.getJerseyNumber() + " is already taken in club " + player.getClub());
+        }
         return playerRepository.save(player);
     }
 
@@ -32,6 +40,8 @@ public class PlayerServiceImpl implements PlayerService{
     public Player updatePlayer(Player player, Long playerId) {
         playerRepository.findById(playerId)
                 .orElseThrow(()-> new ResourceNotFoundException("Player","playerId",playerId));
+
+
 
         player.setPlayerId(playerId);
         return playerRepository.save(player);
